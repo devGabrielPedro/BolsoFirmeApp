@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "506432480179",
+    "project_id": "bolso-firme",
+    "storage_bucket": "bolso-firme.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506432480179:android:681191b64075e5ab29a1c6",
+        "android_client_info": {
+          "package_name": "com.example.telalogin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZdHc-14h5yPv1SbhKWpcPyVdpZfrttz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
