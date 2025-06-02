@@ -26,6 +26,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot; // Adicionado para addSnapshotListener
@@ -33,8 +34,10 @@ import com.google.firebase.firestore.QuerySnapshot; // Adicionado para addSnapsh
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class telaprincipal extends AppCompatActivity {
 
@@ -62,6 +65,9 @@ public class telaprincipal extends AppCompatActivity {
     private static final String TAG = "TelaPrincipal";
     // Nomes dos meses para os botões/textos
     private final String[] NOMES_MESES = {"Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
+
+    private ListenerRegistration saldoListenerRegistration;
+    private ListenerRegistration extratoListenerRegistration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,30 +103,60 @@ public class telaprincipal extends AppCompatActivity {
         rvExtrato.setLayoutManager(new LinearLayoutManager(this));
         rvExtrato.setAdapter(transacaoAdapter);
 
-        // Carregar dados iniciais
-        carregarSaldoTotalDoUsuario();
-        configurarEselecionarMesAtualNaBarra();
-
-        // Listeners dos botões de ação principais
         btnEntrada.setOnClickListener(v -> {
-            Toast.makeText(this, "Implementar tela de Entrada", Toast.LENGTH_SHORT).show();
-            // Exemplo: startActivity(new Intent(telaprincipal.this, TelaEntradaActivity.class));
+            Intent intent = new Intent(telaprincipal.this, TelaEntradaActivity.class);
+            startActivity(intent);
         });
 
         btnSaida.setOnClickListener(v -> {
-            Toast.makeText(this, "Implementar tela de Saída", Toast.LENGTH_SHORT).show();
-            // Exemplo: startActivity(new Intent(telaprincipal.this, TelaSaidaActivity.class));
+            Intent intent = new Intent(telaprincipal.this, TelaSaidaActivity.class);
+            startActivity(intent);
         });
 
         btnGraficos.setOnClickListener(v -> {
-            Toast.makeText(this, "Implementar tela de Gráficos", Toast.LENGTH_SHORT).show();
-            // Exemplo: startActivity(new Intent(telaprincipal.this, TelaGraficosActivity.class));
+            // Quando você criar a TelaGraficosActivity, a chamada será similar:
+            // Intent intent = new Intent(telaprincipal.this, TelaGraficosActivity.class);
+            // startActivity(intent);
+            Toast.makeText(this, "Tela de Gráficos a ser implementada.", Toast.LENGTH_SHORT).show();
         });
 
         btnLogout.setOnClickListener(v -> {
             mAuth.signOut();
             irParaTelaLogin();
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart: Registrando listeners...");
+        carregarSaldoTotalDoUsuario(); // Este método agora vai registrar o saldoListenerRegistration
+
+        // Garante que a barra de meses esteja configurada e o mês/extrato atual carregado com listener
+        if (llMesesContainer.getChildCount() == 0) { // Configura a barra de meses apenas uma vez ou se estiver vazia
+            configurarEselecionarMesAtualNaBarra();
+        } else if (ultimoBotaoMesSelecionado != null) {
+            // Se a barra já existe, apenas recarrega o extrato do mês selecionado para reativar o listener
+            processarSelecaoDeMes(ultimoBotaoMesSelecionado, mesSelecionadoGlobal, anoSelecionadoGlobal);
+        } else {
+            // Fallback para caso algo não tenha sido inicializado
+            configurarEselecionarMesAtualNaBarra();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Remover os listeners para evitar memory leaks e processamento desnecessário
+        Log.d(TAG, "onStop: Removendo listeners...");
+        if (saldoListenerRegistration != null) {
+            saldoListenerRegistration.remove();
+            saldoListenerRegistration = null; // Limpa a referência
+        }
+        if (extratoListenerRegistration != null) {
+            extratoListenerRegistration.remove();
+            extratoListenerRegistration = null; // Limpa a referência
+        }
     }
 
     private void irParaTelaLogin() {
@@ -132,10 +168,17 @@ public class telaprincipal extends AppCompatActivity {
     }
 
     private void carregarSaldoTotalDoUsuario() {
-        if (userDocumentRef == null) return;
+        if (userDocumentRef == null || currentUser == null) {
+            Log.e(TAG, "userDocumentRef ou currentUser é nulo em carregarSaldoTotalDoUsuario.");
+            if (currentUser == null && !isFinishing()) irParaTelaLogin();
+            return;
+        }
 
-        // Listener para o saldo total do usuário (atualiza em tempo real)
-        userDocumentRef.addSnapshotListener(this, (snapshot, e) -> {
+        if (saldoListenerRegistration != null) {
+            saldoListenerRegistration.remove();
+        }
+
+        saldoListenerRegistration  = userDocumentRef.addSnapshotListener(this, (snapshot, e) -> {
             if (e != null) {
                 Log.w(TAG, "Falha ao ouvir o saldo.", e);
                 tvSaldo.setText("R$ --,--");
@@ -145,16 +188,40 @@ public class telaprincipal extends AppCompatActivity {
                 Double saldoAtual = snapshot.getDouble("saldo");
                 if (saldoAtual != null) {
                     tvSaldo.setText(String.format(Locale.getDefault(), "R$ %.2f", saldoAtual));
-                    // Use ContextCompat para cores para melhor compatibilidade
                     tvSaldo.setTextColor(saldoAtual < 0 ? ContextCompat.getColor(this, R.color.red) : ContextCompat.getColor(this, R.color.green));
                 } else {
                     tvSaldo.setText("R$ 0,00"); // Caso o campo saldo seja nulo
                     tvSaldo.setTextColor(ContextCompat.getColor(this, R.color.green));
+                    userDocumentRef.update("saldo", 0.00)
+                            .addOnSuccessListener(aVoid -> Log.i(TAG, "Campo 'saldo' inicializado para usuário existente."))
+                            .addOnFailureListener(err -> Log.e(TAG, "Falha ao inicializar campo 'saldo' para usuário existente.", err));
                 }
             } else {
-                Log.d(TAG, "Documento do usuário não encontrado ao carregar saldo.");
-                tvSaldo.setText("R$ 0,00");
+                Log.d(TAG, "Documento do usuário não encontrado para UID: " + currentUser.getUid() + ". Tentando criar...");
+                tvSaldo.setText("R$ 0,00"); // Mostra 0 enquanto tenta criar
                 tvSaldo.setTextColor(ContextCompat.getColor(this, R.color.green));
+
+                Map<String, Object> initialUserData = new HashMap<>();
+                initialUserData.put("email", currentUser.getEmail());
+                // Se você salvou o nome completo durante o cadastro e quer adicioná-lo aqui:
+                initialUserData.put("nomeCompleto", currentUser.getDisplayName()); // Ou a forma como você armazenou
+                initialUserData.put("saldo", 0.00);
+                // Adicione outros campos padrão que deveriam existir no documento do usuário
+                // Se você adicionou 'nomeCompleto' em telacadastro, certifique-se de que está aqui também
+                // ou obtenha do FirebaseUser se disponível (displayName).
+
+                userDocumentRef.set(initialUserData) // Use .set() para criar o documento
+                        .addOnSuccessListener(aVoid -> {
+                            Log.i(TAG, "Documento do usuário criado com sucesso na tela principal para UID: " + currentUser.getUid());
+                            // O listener do snapshot deve ser acionado novamente agora com o documento existindo,
+                            // atualizando o saldo corretamente.
+                        })
+                        .addOnFailureListener(e_create -> {
+                            Log.e(TAG, "Falha CRÍTICA ao criar documento do usuário na tela principal: ", e_create);
+                            Toast.makeText(telaprincipal.this, "Erro ao inicializar dados do usuário. Tente novamente.", Toast.LENGTH_LONG).show();
+                            // Aqui, talvez seja necessário deslogar o usuário ou tomar outra ação drástica,
+                            // pois sem o documento base, muitas coisas não funcionarão.
+                        });
             }
         });
     }
@@ -244,6 +311,10 @@ public class telaprincipal extends AppCompatActivity {
         Log.d(TAG, "Carregando extrato para Mês/Ano: " + (mes + 1) + "/" + ano);
         Log.d(TAG, "Query entre: " + dataInicioMes.toString() + " E " + dataFimMes.toString());
 
+        if (extratoListenerRegistration != null) {
+            extratoListenerRegistration.remove();
+        }
+
         // Listener para as transações do mês (atualiza em tempo real)
         userDocumentRef.collection("transacoes")
                 .whereGreaterThanOrEqualTo("data", timestampInicio)
@@ -270,6 +341,7 @@ public class telaprincipal extends AppCompatActivity {
                                 Log.d(TAG, "Transação Encontrada: " + transacao.getDescricao() + " Data: " + (transacao.getData() != null ? transacao.getData().toDate() : "N/A"));
                             }
                         }
+                        Log.d(TAG, "Extrato atualizado com " + transacoesDoMes.size() + " transações.");
                         transacaoAdapter.atualizarLista(transacoesDoMes);
 
                         if (transacoesDoMes.isEmpty()) {

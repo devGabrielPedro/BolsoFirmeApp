@@ -12,6 +12,14 @@
     <string name="botao_cadastro">Cadastrar</string>
     <string name="login">Já possui conta? Login</string>
     <string name="descricao_imagem">Logo do app</string>
+    <string-array name="formas_pagamento_array">
+        <item>Dinheiro</item>
+        <item>Cartão de Crédito</item>
+        <item>Cartão de Débito</item>
+        <item>PIX</item>
+        <item>Transferência Bancária</item>
+        <item>Outro</item>
+    </string-array>
 
     <style name="MesText">
         <item name="android:textColor">@android:color/white</item>

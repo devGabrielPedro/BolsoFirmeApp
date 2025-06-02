@@ -57,6 +57,15 @@ public class TransacaoAdapter extends RecyclerView.Adapter<TransacaoAdapter.Tran
         } else {
             holder.tvItemValor.setTextColor(Color.BLACK); // Cor padrão
         }
+
+        if ("saida".equalsIgnoreCase(transacao.getTipo()) &&
+                transacao.getFormaPagamento() != null &&
+                !transacao.getFormaPagamento().isEmpty()) {
+            holder.tvItemFormaPagamento.setText("Pagamento: " + transacao.getFormaPagamento());
+            holder.tvItemFormaPagamento.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvItemFormaPagamento.setVisibility(View.GONE); // Esconde se não for saída ou não tiver forma de pgto
+        }
     }
 
     @Override
@@ -74,13 +83,14 @@ public class TransacaoAdapter extends RecyclerView.Adapter<TransacaoAdapter.Tran
     }
 
     static class TransacaoViewHolder extends RecyclerView.ViewHolder {
-        TextView tvItemDescricao, tvItemValor, tvItemData;
+        TextView tvItemDescricao, tvItemValor, tvItemData, tvItemFormaPagamento;
 
         TransacaoViewHolder(View view) {
             super(view);
             tvItemDescricao = view.findViewById(R.id.tvItemDescricao);
             tvItemValor = view.findViewById(R.id.tvItemValor);
             tvItemData = view.findViewById(R.id.tvItemData);
+            tvItemFormaPagamento = view.findViewById(R.id.tvItemFormaPagamento);
         }
     }
 }

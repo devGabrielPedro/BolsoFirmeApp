@@ -32,6 +32,14 @@
             android:name=".telaprincipal"
             android:exported="false" />
 
+        <activity
+            android:name=".TelaEntradaActivity"
+            android:label="Nova Entrada"/>
+
+        <activity
+            android:name=".TelaSaidaActivity"
+            android:label="Nova Saída"/>
+
     </application>
 
 </manifest>
