@@ -43,12 +43,31 @@
             android:text="R$ 0,00"/>
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvItemFormaPagamento"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:textColor="@android:color/darker_gray" android:layout_marginTop="2dp"
-        android:visibility="gone" tools:text="Forma: Cartão de Crédito"
-        tools:visibility="visible"/>
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:id="@+id/tvItemCategoria"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray" android:visibility="gone" tools:text="Categoria: Alimentação"
+            tools:visibility="visible"/>
+
+        <TextView
+            android:id="@+id/tvItemFormaPagamento"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="12sp"
+            android:gravity="end" android:textColor="@android:color/darker_gray"
+            android:visibility="gone"
+            tools:text="Pagamento: Cartão Crédito"
+            tools:visibility="visible"/>
+    </LinearLayout>
+
 </LinearLayout>

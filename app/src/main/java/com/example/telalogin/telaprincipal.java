@@ -114,10 +114,8 @@ public class telaprincipal extends AppCompatActivity {
         });
 
         btnGraficos.setOnClickListener(v -> {
-            // Quando você criar a TelaGraficosActivity, a chamada será similar:
-            // Intent intent = new Intent(telaprincipal.this, TelaGraficosActivity.class);
-            // startActivity(intent);
-            Toast.makeText(this, "Tela de Gráficos a ser implementada.", Toast.LENGTH_SHORT).show();
+             Intent intent = new Intent(telaprincipal.this, TelaGraficosActivity.class);
+             startActivity(intent);
         });
 
         btnLogout.setOnClickListener(v -> {

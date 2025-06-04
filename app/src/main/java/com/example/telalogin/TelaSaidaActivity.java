@@ -52,7 +52,8 @@ public class TelaSaidaActivity extends AppCompatActivity {
 
     private static final String TAG = "TelaSaidaActivity";
     private SimpleDateFormat sdfDisplay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-    private final String FORMA_PAGAMENTO_CREDITO = "Cartão de Crédito"; // Conforme seu array em strings.xml
+    private final String FORMA_PAGAMENTO_CREDITO = "Cartão de Crédito";
+    private Spinner spinnerCategoriaSaida;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +85,11 @@ public class TelaSaidaActivity extends AppCompatActivity {
         cbDespesaRecorrente = findViewById(R.id.cbDespesaRecorrente);
         layoutConfigRecorrencia = findViewById(R.id.layoutConfigRecorrencia);
         etMesesRecorrencia = findViewById(R.id.etMesesRecorrencia);
+        spinnerCategoriaSaida = findViewById(R.id.spinnerCategoriaSaida);
+        ArrayAdapter<CharSequence> categoriaAdapter = ArrayAdapter.createFromResource(this,
+                R.array.categorias_despesa_array, android.R.layout.simple_spinner_item);
+        categoriaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategoriaSaida.setAdapter(categoriaAdapter);
 
         dataSelecionadaCalendar = Calendar.getInstance();
         atualizarLabelDataSelecionada();
@@ -158,6 +164,7 @@ public class TelaSaidaActivity extends AppCompatActivity {
         boolean isParcelado = FORMA_PAGAMENTO_CREDITO.equals(formaPagamento) && layoutParcelamento.getVisibility() == View.VISIBLE;
         boolean isRecorrente = cbDespesaRecorrente.isChecked();
         Calendar calendarioBaseParaTimestamp = (Calendar) dataSelecionadaCalendar.clone();
+        String categoriaSelecionada = spinnerCategoriaSaida.getSelectedItem().toString();
 
         // Validações básicas
         if (TextUtils.isEmpty(valorTotalStr)) { /* ... error ... */ etValorSaida.setError("Valor obrigatório"); return; }
@@ -184,7 +191,7 @@ public class TelaSaidaActivity extends AppCompatActivity {
             if (numParcelas == 1) { // Se for 1 parcela, trata como transação normal com CC
                 Map<String, Object> transacao = criarMapaTransacao(
                         valorTotal, descricao + " (1/1)", new Timestamp(dataSelecionadaCalendar.getTime()),
-                        formaPagamento, true, 1, 1, idGrupo,
+                        formaPagamento, categoriaSelecionada, true, 1, 1, idGrupo,
                         false, null);
                 transacoesParaSalvar.add(transacao);
             } else {
@@ -202,7 +209,7 @@ public class TelaSaidaActivity extends AppCompatActivity {
                     Map<String, Object> parcela = criarMapaTransacao(
                             valorParcela, descricao + " (" + i + "/" + numParcelas + ")",
                             new Timestamp(dataParcelaCal.getTime()), formaPagamento,
-                            true, i, numParcelas, idGrupo, false, null
+                            categoriaSelecionada, true, i, numParcelas, idGrupo, false, null
                     );
                     transacoesParaSalvar.add(parcela);
                     dataParcelaCal.add(Calendar.MONTH, 1); // Próxima parcela no mês seguinte
@@ -232,7 +239,7 @@ public class TelaSaidaActivity extends AppCompatActivity {
                 Map<String, Object> recorrencia = criarMapaTransacao(
                         valorTotal, // Valor fixo
                         descricao + " (Recorrente)", new Timestamp(dataRecorrenciaComHora.getTime()),
-                        formaPagamento, false, 0,0,null,
+                        formaPagamento, categoriaSelecionada, false, 0,0,null,
                         true, idGrupo // Usando o mesmo idGrupo para agrupar
                 );
                 transacoesParaSalvar.add(recorrencia);
@@ -250,7 +257,7 @@ public class TelaSaidaActivity extends AppCompatActivity {
 
             Map<String, Object> transacao = criarMapaTransacao(
                     valorTotal, descricao, new Timestamp(calendarioTimestampUnico.getTime()),
-                    formaPagamento, false,0,0,null,
+                    formaPagamento, categoriaSelecionada, false,0,0,null,
                     false, null);
             transacoesParaSalvar.add(transacao);
         }
@@ -259,7 +266,7 @@ public class TelaSaidaActivity extends AppCompatActivity {
         salvarTransacoesBatch(transacoesParaSalvar, !(isParcelado || isRecorrente), valorTotal);
     }
 
-    private Map<String, Object> criarMapaTransacao(double valor, String desc, Timestamp data, String formaPag,
+    private Map<String, Object> criarMapaTransacao(double valor, String desc, Timestamp data, String formaPag, String categoria,
                                                    boolean parcelado, int parcelaAtual, int totalParcelas, String idGrupoParc,
                                                    boolean recorrente, String idGrupoRec) {
         Map<String, Object> transacao = new HashMap<>();
@@ -268,6 +275,7 @@ public class TelaSaidaActivity extends AppCompatActivity {
         transacao.put("descricao", desc);
         transacao.put("data", data);
         transacao.put("formaPagamento", formaPag);
+        transacao.put("categoria", categoria);
 
         if (parcelado) {
             transacao.put("parcelado", true);

@@ -43,4 +43,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation(libs.material.v1140alpha01)
+    implementation(libs.viewpager2)
+    implementation(libs.mpandroidchart.vv310)
 }

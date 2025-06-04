@@ -20,6 +20,18 @@
         <item>Transferência Bancária</item>
         <item>Outro</item>
     </string-array>
+    <string-array name="categorias_despesa_array">
+        <item>Alimentação</item>
+        <item>Moradia</item>
+        <item>Transporte</item>
+        <item>Saúde</item>
+        <item>Educação</item>
+        <item>Lazer</item>
+        <item>Vestuário</item>
+        <item>Contas Fixas (água, luz, internet)</item>
+        <item>Outros</item>
+    </string-array>
+    <string name="todas_as_categorias">Todas as Categorias</string>
 
     <style name="MesText">
         <item name="android:textColor">@android:color/white</item>

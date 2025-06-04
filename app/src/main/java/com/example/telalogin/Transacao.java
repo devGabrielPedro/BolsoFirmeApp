@@ -18,9 +18,11 @@ public class Transacao {
     private boolean recorrente;
     private String idGrupoRecorrencia; // Para agrupar despesas recorrentes
 
+    private String categoria;
+
     public Transacao() {}
 
-    public Transacao(String id, String tipo, double valor, String descricao, Timestamp data, String formaPagamento, boolean parcelado, int parcelaAtual, int totalParcelas, String idGrupoParcelamento, boolean recorrente, String idGrupoRecorrencia) {
+    public Transacao(String id, String tipo, double valor, String descricao, Timestamp data, String formaPagamento, boolean parcelado, int parcelaAtual, int totalParcelas, String idGrupoParcelamento, boolean recorrente, String idGrupoRecorrencia, String categoria) {
         this.id = id;
         this.tipo = tipo;
         this.valor = valor;
@@ -33,6 +35,7 @@ public class Transacao {
         this.idGrupoParcelamento = idGrupoParcelamento;
         this.recorrente = recorrente;
         this.idGrupoRecorrencia = idGrupoRecorrencia;
+        this.categoria = categoria;
     }
 
     public String getId() {
@@ -129,5 +132,13 @@ public class Transacao {
 
     public void setIdGrupoRecorrencia(String idGrupoRecorrencia) {
         this.idGrupoRecorrencia = idGrupoRecorrencia;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 }
